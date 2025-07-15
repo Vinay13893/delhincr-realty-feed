@@ -1,8 +1,6 @@
 name: Auto Update RSS Feed
 
 on:
-  schedule:
-    - cron: '30 10 * * *' # Runs every day at 3:30 PM IST (10:30 UTC)
   workflow_dispatch:
 
 jobs:
@@ -10,36 +8,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: Generate daily RSS entry
-        run: |
-          echo "Generating RSS feed..."
-          DATE=$(date -u "+%a, %d %b %Y %H:%M:%S +0000")
-          FEED_FILE="feed.xml"
+    - name: Set up Git
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
-          NEW_ITEM="<item>
-          <title>Delhi NCR Summary - $(date +'%B %d, %Y')</title>
-          <link>https://vinay13893.github.io/delhincr-realty-feed/</link>
-          <pubDate>$DATE</pubDate>
-          <description><![CDATA[
-            <ul>
-              <li><strong>Update:</strong> Automated feed summary inserted.</li>
-              <li><strong>Monitoring:</strong> Ganga Realty & competitors in ₹4 Cr+ market.</li>
-            </ul>
-          ]]></description>
-          </item>"
+    - name: Update feed.xml with new dummy item
+      run: |
+        DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        FEED_FILE="feed.xml"
+        NEW_ITEM="<item><title>Delhi NCR Summary - $DATE</title><link>https://vinay13893.github.io/delhincr-realty-feed</link><pubDate>$DATE</pubDate><description><![CDATA[<ul><li><strong>Update:</strong> Manual push test at $DATE</li></ul>]]></description></item>"
 
-          awk -v item="$NEW_ITEM" '
-            /<\/channel>/ { print item; print; next }
-            { print }
-          ' "$FEED_FILE" > temp.xml && mv temp.xml "$FEED_FILE"
+        awk -v item="$NEW_ITEM" '/<\/channel>/ { print item } 1' "$FEED_FILE" > temp.xml && mv temp.xml "$FEED_FILE"
 
-      - name: Commit & Push
-        run: |
-          git config user.name "AutoBot"
-          git config user.email "bot@delhincrrealty.ai"
-          git add feed.xml
-          git commit -m "Auto-update RSS feed: $(date)"
-          git push
+    - name: Commit & Push
+      run: |
+        git add feed.xml
+        git commit -m "Auto update RSS feed"
+        git push
