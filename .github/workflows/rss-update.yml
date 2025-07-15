@@ -2,7 +2,7 @@ name: Auto Update RSS Feed
 
 on:
   schedule:
-    - cron: '0 10 * * *' # Runs every day at 3:30 PM IST (10:00 UTC)
+    - cron: '0 10 * * *'  # 10:00 UTC = 3:30 PM IST daily
   workflow_dispatch:
 
 jobs:
@@ -18,23 +18,21 @@ jobs:
           DATE=$(date -u "+%a, %d %b %Y %H:%M:%S +0000")
           FEED_FILE="feed.xml"
 
-          # Create RSS item
-          NEW_ITEM=$(cat <<EOF
-<item>
-  <title>Delhi NCR Summary - $(date +%B\ %d, %Y)</title>
-  <link>https://vinay13893.github.io/delhincr-realty-feed/</link>
-  <pubDate>$DATE</pubDate>
-  <description><![CDATA[
-    <ul>
-      <li><strong>Update:</strong> Automated feed summary inserted.</li>
-      <li><strong>Monitoring:</strong> Ganga Realty & competitors in ₹4 Cr+ market.</li>
-    </ul>
-  ]]></description>
-</item>
-EOF
-)
+          NEW_ITEM="<item>
+<title>Delhi NCR Summary - $(date +%B\ %d,\ %Y)</title>
+<link>https://vinay13893.github.io/delhincr-realty-feed/</link>
+<pubDate>$DATE</pubDate>
+<description><![CDATA[
+<ul>
+<li><strong>DDA Launches Premium Housing Scheme 2025</strong> – 177 flats across zones, reforms in amalgamation and auction charges to boost participation.</li>
+<li><strong>Reconstruction Compensation</strong> – Signature View Apartment residents to receive ₹50,000/month during redevelopment.</li>
+<li><strong>Narela Infrastructure Push</strong> – Land use changed for schools, stadiums; bulk flat offers launched for employees.</li>
+<li><strong>Market Pulse</strong> – Gurugram led H1 2025 leasing, ultra-luxury home sales soared 25x despite cooling volumes overall.</li>
+</ul>
+]]></description>
+</item>"
 
-          # Inject the new item just after <channel> opening
+          # Insert new item after <channel>
           awk -v item="$NEW_ITEM" '
             /<channel>/ { print; print item; next }
             { print }
@@ -43,7 +41,7 @@ EOF
       - name: Commit & Push
         run: |
           git config user.name "AutoBot"
-          git config user.email "bot@delhincrreality.ai"
+          git config user.email "bot@delhincrrealty.ai"
           git add feed.xml
           git commit -m "Auto-update RSS feed: $(date)"
           git push
