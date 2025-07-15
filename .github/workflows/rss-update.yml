@@ -2,7 +2,7 @@ name: Auto Update RSS Feed
 
 on:
   schedule:
-    - cron: '0 10 * * *'  # Runs every day at 3:30 PM IST (10:00 UTC)
+    - cron: '0 10 * * *' # Runs every day at 3:30 PM IST (10:00 UTC)
   workflow_dispatch:
 
 jobs:
@@ -15,12 +15,13 @@ jobs:
       - name: Generate daily RSS entry
         run: |
           echo "Generating RSS feed..."
-          DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
+          DATE=$(date -u "+%a, %d %b %Y %H:%M:%S +0000")
           FEED_FILE="feed.xml"
 
-          # Create RSS item (you can edit this content block)
-          NEW_ITEM="<item>
-  <title>Delhi NCR Summary – $(date +%B\ %d,\ %Y)</title>
+          # Create RSS item
+          NEW_ITEM=$(cat <<EOF
+<item>
+  <title>Delhi NCR Summary - $(date +%B\ %d, %Y)</title>
   <link>https://vinay13893.github.io/delhincr-realty-feed/</link>
   <pubDate>$DATE</pubDate>
   <description><![CDATA[
@@ -29,18 +30,20 @@ jobs:
       <li><strong>Monitoring:</strong> Ganga Realty & competitors in ₹4 Cr+ market.</li>
     </ul>
   ]]></description>
-</item>"
+</item>
+EOF
+)
 
           # Inject the new item just after <channel> opening
           awk -v item="$NEW_ITEM" '
             /<channel>/ { print; print item; next }
             { print }
-          ' $FEED_FILE > temp.xml && mv temp.xml $FEED_FILE
+          ' "$FEED_FILE" > temp.xml && mv temp.xml "$FEED_FILE"
 
       - name: Commit & Push
         run: |
           git config user.name "AutoBot"
-          git config user.email "bot@delhincrrealty.ai"
+          git config user.email "bot@delhincrreality.ai"
           git add feed.xml
           git commit -m "Auto-update RSS feed: $(date)"
           git push
