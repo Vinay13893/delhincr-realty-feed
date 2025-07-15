@@ -8,12 +8,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout the repo
+    - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        persist-credentials: true
 
-    - name: Set up Git
+    - name: Set up Git config
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
@@ -26,8 +26,8 @@ jobs:
 
         awk -v item="$NEW_ITEM" '/<\/channel>/ { print item } 1' "$FEED_FILE" > temp.xml && mv temp.xml "$FEED_FILE"
 
-    - name: Commit and Push changes
+    - name: Commit & Push
       run: |
         git add feed.xml
-        git commit -m "Auto update RSS feed at $DATE"
+        git commit -m "Update feed at $DATE"
         git push origin main
